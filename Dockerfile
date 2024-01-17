@@ -1,8 +1,8 @@
-FROM golang:1.21
+FROM golang:latest
 
 WORKDIR /app
 
-COPY . .
+COPY ./main .
 
 RUN go build -o main .
 
