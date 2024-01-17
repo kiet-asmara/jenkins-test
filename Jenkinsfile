@@ -1,26 +1,36 @@
 pipeline {
-    agent any
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-        stage('Build & Dockerize') {
-            steps {
-                script{
-                    docker.build("first-go-app")
-                }
-            }
-        }
-        stage('Push to Docker Hub') {
-            steps {
-                script{
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
-                        docker.image("tugasm1998/first-go-app").push()
-                    }
-                }
-            }
-        }
-    }
+environment {
+registry = "kipas/repo123"
+registryCredential = 'kipas'
+dockerImage = ''
+}
+agent any
+stages {
+stage('Cloning our Git') {
+steps {
+git 'https://github.com/kiet-asmara/jenkins-test'
+}
+}
+stage('Building our image') {
+steps{
+script {
+dockerImage = docker.build registry + ":$BUILD_NUMBER"
+}
+}
+}
+stage('Deploy our image') {
+steps{
+script {
+docker.withRegistry( '', registryCredential ) {
+dockerImage.push()
+}
+}
+}
+}
+stage('Cleaning up') {
+steps{
+sh "docker rmi $registry:$BUILD_NUMBER"
+}
+}
+}
 }
